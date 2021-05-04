@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class FFTOcean : MonoBehaviour
 {
     [SerializeField] ComputeShader shaderGenerateSpectrum;
@@ -15,11 +16,15 @@ public class FFTOcean : MonoBehaviour
     RenderTexture normal_Tex;
     int cnt;
 
+    private Mesh mesh;
+    private Vector3[] vertices;
+
     private void Awake()
     {
         kernel_GenerateSpectrumKernel = shaderGenerateSpectrum.FindKernel("GenerateSpectrumKernel");
         kernel_Center_difference = shaderSetNormal.FindKernel("Center_difference");
         renderingShader_Material = new Material(renderingShader);
+        InstantiateElement("OceanPlane", 256 * 1, 256 * 2, renderingShader_Material);
         cnt = 0;
     }
 
@@ -91,4 +96,67 @@ public class FFTOcean : MonoBehaviour
         d_ht_dmy.Release();
     }
 
+    private void Generate(int xSize, int ySize)
+    {
+        GetComponent<MeshFilter>().mesh = mesh = new Mesh();
+        mesh.name = "Procedural Grid";
+
+        vertices = new Vector3[(xSize + 1) * (ySize + 1)];
+        Vector2[] uv = new Vector2[vertices.Length];
+        Vector4[] tangents = new Vector4[vertices.Length];
+        Vector4 tangent = new Vector4(1f, 0f, 0f, -1f);
+        for (int i = 0, y = 0; y <= ySize; y++)
+        {
+            for (int x = 0; x <= xSize; x++, i++)
+            {
+                vertices[i] = new Vector3(x, 0, y);
+                uv[i] = new Vector2((float)x / xSize, (float)y / ySize);
+                tangents[i] = tangent;
+            }
+        }
+        mesh.vertices = vertices;
+
+        int[] triangles = new int[xSize * ySize * 6];
+        for (int ti = 0, vi = 0, y = 0; y < ySize; y++, vi++)
+        {
+            for (int x = 0; x < xSize; x++, ti += 6, vi++)
+            {
+                triangles[ti] = vi;
+                triangles[ti + 3] = triangles[ti + 2] = vi + 1;
+                triangles[ti + 4] = triangles[ti + 1] = vi + xSize + 1;
+                triangles[ti + 5] = vi + xSize + 2;
+            }
+        }
+        mesh.triangles = triangles;
+        mesh.uv = uv;
+        mesh.tangents = tangents;
+        Debug.Log(vertices.Length);
+    }
+
+    Element InstantiateElement(string name, int xSize, int ySize, Material mat)
+    {
+        Generate(xSize, ySize);
+        transform.gameObject.name = name;
+        transform.gameObject.transform.SetParent(transform);
+        transform.gameObject.transform.localPosition = Vector3.zero;
+        MeshRenderer meshRenderer = transform.gameObject.GetComponent<MeshRenderer>();
+        meshRenderer.material = mat;
+        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        meshRenderer.receiveShadows = true;
+        meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
+        meshRenderer.allowOcclusionWhenDynamic = false;
+        return new Element(transform.gameObject.transform, meshRenderer);
+    }
+}
+
+class Element
+{
+    public Transform Transform;
+    public MeshRenderer MeshRenderer;
+
+    public Element(Transform transform, MeshRenderer meshRenderer)
+    {
+        Transform = transform;
+        MeshRenderer = meshRenderer;
+    }
 }
