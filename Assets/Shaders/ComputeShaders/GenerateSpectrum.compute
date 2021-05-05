@@ -3,6 +3,10 @@
 
 RWStructuredBuffer<float2> h0;
 RWStructuredBuffer<float2> ht;
+RWStructuredBuffer<float2> ht_dx;
+RWStructuredBuffer<float2> ht_dz;
+RWStructuredBuffer<float2> displaceX;
+RWStructuredBuffer<float2> displaceZ;
 int N;
 int seasizeLx;
 int seasizeLz;
@@ -37,7 +41,7 @@ void GenerateSpectrumKernel(uint2 id : SV_DispatchThreadID)
 	uint x = id.x;
 	uint y = id.y;
 	uint in_index = y * N + x;
-	uint in_mindex = (N - y) % N * N + (N - x) % N;
+	uint in_mindex = (N - y) % N * N + (N - x) % N; // mirrored
 	uint out_index = y * N + x;
 	// calculate wave vector
 	float2 k;
@@ -47,11 +51,24 @@ void GenerateSpectrumKernel(uint2 id : SV_DispatchThreadID)
 	float k_len = sqrt(k.x * k.x + k.y * k.y);
 	float w = sqrt(9.81f * k_len);
 
-	if ((x < (uint)N) && (y < (uint)N))
+	float2 h0_k = h0[in_index];
+	float2 h0_mk = h0[in_mindex];
+	// output frequency-space complex values
+	float2 htval = complex_add(complex_mult(h0_k, complex_exp(w * t)), complex_mult(conjugate(h0_mk), complex_exp(-w * t)));
+	ht[out_index] = htval; // Normal height
+
+	float2 htival;//i*htval
+	htival.x = -htval.y;
+	htival.y = htval.x;
+	ht_dx[out_index] = htival * k.x;
+	ht_dz[out_index] = htival * k.y;
+
+	if (k_len != 0.0)
 	{
-		float2 h0_k = h0[in_index];
-		float2 h0_mk = h0[in_mindex];
-		// output frequency-space complex values
-		ht[out_index] = complex_add(complex_mult(h0_k, complex_exp(w * t)), complex_mult(conjugate(h0_mk), complex_exp(-w * t)));
+		k.x /= k_len;
+		k.y /= k_len;
 	}
+
+	displaceX[out_index] = -htival * k.x;
+	displaceZ[out_index] = -htival * k.y;
 }

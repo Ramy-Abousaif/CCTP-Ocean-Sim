@@ -11,15 +11,8 @@ public class Grid : MonoBehaviour {
     public FFTOcean fft;
 
     private void Start () {
-        StartCoroutine(Banana());
+        Generate(width, height);
 	}
-
-    private IEnumerator Banana()
-    {
-        yield return new WaitForSeconds(1);
-        InstantiateElement("OceanPlane", width, height, fft.renderingShader_Material);
-        yield return null;
-    }
 
 	private void Generate (int xSize, int ySize) {
 		GetComponent<MeshFilter>().mesh = mesh = new Mesh();
@@ -28,7 +21,7 @@ public class Grid : MonoBehaviour {
 		vertices = new Vector3[(xSize + 1) * (ySize + 1)];
 		for (int i = 0, y = 0; y <= ySize; y++) {
 			for (int x = 0; x <= xSize; x++, i++) {
-				vertices[i] = new Vector3(x, 0, y);
+				vertices[i] = new Vector3(x, y);
 			}
 		}
 		mesh.vertices = vertices;
@@ -44,19 +37,4 @@ public class Grid : MonoBehaviour {
 		}
 		mesh.triangles = triangles;
 	}
-
-    Element InstantiateElement(string name, int xSize, int ySize, Material mat)
-    {
-        Generate(xSize, ySize);
-        transform.gameObject.name = name;
-        transform.gameObject.transform.SetParent(transform);
-        transform.gameObject.transform.localPosition = Vector3.zero;
-        MeshRenderer meshRenderer = transform.gameObject.AddComponent<MeshRenderer>();
-        meshRenderer.material = mat;
-        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        meshRenderer.receiveShadows = true;
-        meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
-        meshRenderer.allowOcclusionWhenDynamic = false;
-        return new Element(transform.gameObject.transform, meshRenderer);
-    }
 }
