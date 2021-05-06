@@ -1,10 +1,14 @@
 ﻿#pragma kernel FFT2Dfunc256inv
 #pragma kernel DFT2Dfunc256inv
 #define PI 3.14159265358979323846264338328
+
+// x stores real numbers and y stores imaginary numbers
 RWStructuredBuffer<float2> buffer;
 RWStructuredBuffer<float2> buffer_dmy;
 
-
+//256 * 256 code dedicated to 2D IFFT of elements and also considering that there is a negative frequency (ordinary FFT, DFT starts from the positive frequency)
+// Assuming that it is executed with the number of groups N
+// Assuming that it will be executed twice
 #define M (8)
 #define N (1<<M)
 groupshared float2 block[N];
@@ -35,28 +39,32 @@ void FFT2Dfunc256inv(uint id : SV_DispatchThreadID, uint grid : SV_GroupID, uint
 	}
 
 	GroupMemoryBarrierWithGroupSync();
+	// 32 bit reversal
 	float2 reim0 = block[reversebits(gi * 2) >> (32 - M)];
 	float2 reim1 = block[reversebits(gi * 2 + 1) >> (32 - M)];
-	reim1 = -reim1;
+	reim1 = -reim1;// Because the output result is multiplied by (-1) ^ index
+	// Writing transposes x and y. This allows the first and second 2D FFT calculations to have the same code, and the final memory allocation returns to the same as the first.
+	// Shift the final write destination by N / 2, N / 2
 	buffer_dmy[(gi * 2 + N / 2) % N * N + grid] = reim0;
 	buffer_dmy[(gi * 2 + 1 + N / 2) % N * N + grid] = reim1;
 }
 
 
-
+//DFT VERSION
+// Assuming that it is executed with the number of groups N
 [numthreads(N, 1, 1)]
 void DFT2Dfunc256inv(uint id : SV_DispatchThreadID, uint grid : SV_GroupID, uint gi : SV_GroupIndex)
 {
-	int x = gi - N / 2;
-	int z = grid - N / 2;
+	int x = (gi - N / 2);// *640.0 / 256.0;
+	int z = (grid - N / 2);// *640.0 / 256.0;
 
 	float2 dftsum = 0;
 	for (int j = 0; j < N; j++)
 	{
-		int kz = -N / 2 + j;
+		int kz = (-N / 2 + j);// *2.0 * PI * 0.0015625;
 		for (int i = 0; i < N; i++)
 		{
-			int kx = -N / 2 + i;
+			int kx = (-N / 2 + i);// *2.0 * PI * 0.0015625;
 			float rad = ((kx * x + kz * z) % N) * (2.0f * PI / N);
 			float2 h = buffer[j * N + i];
 			dftsum.x += h.x * cos(rad) - h.y * sin(rad);

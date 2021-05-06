@@ -146,7 +146,7 @@ public class WaterMesh : MonoBehaviour
         //trims.Clear();
 
         int k = GridSize();
-        center = InstantiateElement("Center", CreatePlaneMesh(512, 512, 1, Seams.All), fft.renderingShader_Material);
+        //center = InstantiateElement("Center", CreatePlaneMesh(512, 512, 1, Seams.All), fft.renderingShader_Material);
         //Mesh ring = CreateRingMesh(k, 1);
         //Mesh trim = CreateTrimMesh(k, 1);
         //for (int i = 0; i < clipLevels; i++)

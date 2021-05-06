@@ -1,19 +1,26 @@
-﻿#pragma kernel Center_difference
+﻿#pragma kernel SetNormal
 RWTexture2D<float4> tex;
-RWStructuredBuffer<float2> ht;
+RWStructuredBuffer<float2> ht_dx;
+RWStructuredBuffer<float2> ht_dz;
+RWStructuredBuffer<float2> displaceX;
+RWStructuredBuffer<float2> displaceZ;
 uint N;
-float rdx;
-float rdz;
+float dx;
+float dz;
 
+float lambda;
 [numthreads(256, 1, 1)]
-void Center_difference(uint2 id : SV_DispatchThreadID)
+void SetNormal(uint2 id : SV_DispatchThreadID)
 {
 	uint x0 = (id.x - 1 + N) % N;
 	uint x1 = (id.x + 1) % N;
 	uint y0 = (id.y - 1 + N) % N;
 	uint y1 = (id.y + 1) % N;
-	float subx = 0.5f * (ht[x1 + id.y * N].x - ht[x0 + id.y * N].x) * rdx;
-	float subz = 0.5f * (ht[id.x + y1 * N].x - ht[id.x + y0 * N].x) * rdz;
+
+	float subx = ht_dx[id.x + id.y * N].x;
+	float subz = ht_dz[id.x + id.y * N].x;
+	subx *= 2.0 * dx / ((displaceX[x1 + id.y * N].x - displaceX[x0 + id.y * N].x) * lambda + 2.0 * dx);
+	subz *= 2.0 * dz / ((displaceZ[id.x + y1 * N].x - displaceZ[id.x + y0 * N].x) * lambda + 2.0 * dz);
 	float3 vec = normalize(float3(-subx, 1.0, -subz));
 	float4 out4 = 1;
 	out4.xyz = vec;
