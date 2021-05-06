@@ -6,7 +6,7 @@
 RWStructuredBuffer<float2> buffer;
 RWStructuredBuffer<float2> buffer_dmy;
 
-//256 * 256 code dedicated to 2D IFFT of elements and also considering that there is a negative frequency (ordinary FFT, DFT starts from the positive frequency
+//256 * 256 code dedicated to 2D IFFT of elements and also considering that there is a negative frequency (ordinary FFT, DFT starts from the positive frequency)
 // Assuming that it is executed with the number of groups N
 // Assuming that it will be executed twice
 #define M (8)

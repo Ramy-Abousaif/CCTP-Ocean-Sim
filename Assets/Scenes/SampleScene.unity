@@ -465,10 +465,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f37e7e3cbe3d1ff478882cd71759b649, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  G: 9.81
-  A: 0.00000121
   windSpeed: 12
   windDir: 8
+  gravity: 9.81
+  A: 0.00000121
 --- !u!114 &1320980354
 MonoBehaviour:
   m_ObjectHideFlags: 0

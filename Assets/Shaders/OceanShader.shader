@@ -44,7 +44,6 @@
 			float2 uv : TEXCOORD0;
 		};
 
-		//4 vertices in 1 quad polygon
 		VSOut vert(uint id : SV_VertexID,float3 normal : NORMAL)
 		{
 			VSOut output;
@@ -68,7 +67,7 @@
 		{
 			float4 col;
 			float3 normal = normalize(tex2D(_MainTex, i.uv).xyz);
-			float3 viewDir = normalize(i.pos2 - float3(0, 41, -330));
+			float3 viewDir = normalize(i.pos2 - _WorldSpaceCameraPos.xyz);
 			float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
 			float3 reflectDir = -2.0 * dot(normal, viewDir) * normal + viewDir;
 			float v = dot(reflectDir, lightDir);

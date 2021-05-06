@@ -41,7 +41,7 @@ void GenerateSpectrumKernel(uint2 id : SV_DispatchThreadID)
 	uint x = id.x;
 	uint y = id.y;
 	uint in_index = y * N + x;
-	uint in_mindex = (N - y) % N * N + (N - x) % N; // mirrored
+	uint in_mindex = (N - y) % N * N + (N - x) % N;
 	uint out_index = y * N + x;
 	// calculate wave vector
 	float2 k;

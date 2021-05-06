@@ -27,7 +27,7 @@ public class FFTOcean : MonoBehaviour
     void Start()
     {
         normal_Tex = CreateRenderTeture();
-        h_h0 = phillips.Generate_h0();
+        h_h0 = phillips.GenerateH0();
         d_h0 = new ComputeBuffer(h_h0.Length, sizeof(float) * 2);
         d_ht = new ComputeBuffer((int)(PhillipsSpectrum.meshSize * PhillipsSpectrum.meshSize), sizeof(float) * 2);
         d_ht_dx = new ComputeBuffer((int)(PhillipsSpectrum.meshSize * PhillipsSpectrum.meshSize), sizeof(float) * 2);
@@ -63,15 +63,15 @@ public class FFTOcean : MonoBehaviour
         shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "displaceX", d_displaceX);
         shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "displaceZ", d_displaceZ);
         shaderGenerateSpectrum.SetInt("N", (int)PhillipsSpectrum.meshSize);
-        shaderGenerateSpectrum.SetInt("seasizeLx", (int)PhillipsSpectrum.seasizeLx);
-        shaderGenerateSpectrum.SetInt("seasizeLz", (int)PhillipsSpectrum.seasizeLz);
+        shaderGenerateSpectrum.SetInt("seasizeLx", (int)PhillipsSpectrum.Lx);
+        shaderGenerateSpectrum.SetInt("seasizeLz", (int)PhillipsSpectrum.Lz);
         shaderSetNormal.SetBuffer(kernel_SetNormal, "ht_dx", d_ht_dx);
         shaderSetNormal.SetBuffer(kernel_SetNormal, "ht_dz", d_ht_dz);
         shaderSetNormal.SetBuffer(kernel_GenerateSpectrumKernel, "displaceX", d_displaceX);
         shaderSetNormal.SetBuffer(kernel_GenerateSpectrumKernel, "displaceZ", d_displaceZ);
         shaderSetNormal.SetTexture(kernel_SetNormal, "tex", normal_Tex);
-        shaderSetNormal.SetFloat("dx", 1.0f * PhillipsSpectrum.seasizeLx / PhillipsSpectrum.meshSize);
-        shaderSetNormal.SetFloat("dz", 1.0f * PhillipsSpectrum.seasizeLz / PhillipsSpectrum.meshSize);
+        shaderSetNormal.SetFloat("dx", 1.0f * PhillipsSpectrum.Lx / PhillipsSpectrum.meshSize);
+        shaderSetNormal.SetFloat("dz", 1.0f * PhillipsSpectrum.Lz / PhillipsSpectrum.meshSize);
         shaderSetNormal.SetFloat("lambda", lambda);
         shaderSetNormal.SetInt("N", (int)PhillipsSpectrum.meshSize);
         // Set GPU buffer as material
@@ -82,8 +82,8 @@ public class FFTOcean : MonoBehaviour
         // Shader Constants
         renderingShader_Material.SetInt("N", (int)PhillipsSpectrum.meshSize);
         renderingShader_Material.SetFloat("halfN", 0.5f * PhillipsSpectrum.meshSize);
-        renderingShader_Material.SetFloat("dx", 1.0f * PhillipsSpectrum.seasizeLx / PhillipsSpectrum.meshSize);
-        renderingShader_Material.SetFloat("dz", 1.0f * PhillipsSpectrum.seasizeLz / PhillipsSpectrum.meshSize);
+        renderingShader_Material.SetFloat("dx", 1.0f * PhillipsSpectrum.Lx / PhillipsSpectrum.meshSize);
+        renderingShader_Material.SetFloat("dz", 1.0f * PhillipsSpectrum.Lz / PhillipsSpectrum.meshSize);
         renderingShader_Material.SetFloat("lambda", lambda);
     }
 
