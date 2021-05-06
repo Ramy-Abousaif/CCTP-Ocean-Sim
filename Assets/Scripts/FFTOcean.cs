@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public class FFTOcean : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class FFTOcean : MonoBehaviour
     public ComputeBuffer d_h0, d_ht, d_ht_dx, d_ht_dz, d_ht_dmy, d_displaceX, d_displaceZ;
     RenderTexture normal_Tex;
     int cnt;
-    [SerializeField] float lambda = -2.0f;
+    [SerializeField] float lambda = -1.0f;
 
     private void Awake()
     {
@@ -38,13 +39,17 @@ public class FFTOcean : MonoBehaviour
         SetArgs();
     }
 
+    public RenderTexture tex;
+    public Texture2D tex2D;
+
     RenderTexture CreateRenderTeture()
     {
-        var tex = new RenderTexture((int)PhillipsSpectrum.meshSize, (int)PhillipsSpectrum.meshSize, 0, RenderTextureFormat.ARGBFloat);
+        tex = new RenderTexture((int)PhillipsSpectrum.meshSize, (int)PhillipsSpectrum.meshSize, 0, RenderTextureFormat.ARGBFloat);
         tex.enableRandomWrite = true;
         tex.Create();
         tex.filterMode = FilterMode.Bilinear;
         tex.wrapMode = TextureWrapMode.Repeat;
+        tex2D = RenderTextureTo2DTexture(tex);
         return tex;
     }
 
@@ -90,7 +95,36 @@ public class FFTOcean : MonoBehaviour
         CalcFFT_ht_dxz();
         CalcFFT_displaceXZ();
         SetNormal();
+        tex2D = RenderTextureTo2DTexture(tex);
         cnt++;
+    }
+
+    public float GetWaterHeight(Vector3 position)
+    {
+        Vector3 displacement = GetWaterDisplacement(position);
+        displacement = GetWaterDisplacement(position - displacement);
+        displacement = GetWaterDisplacement(position - displacement);
+
+        return 1 - GetWaterDisplacement(position - displacement).y;
+    }
+
+    public Vector3 GetWaterDisplacement(Vector3 position)
+    {
+        Color c = tex2D.GetPixelBilinear(position.x / 250, position.z / 250);
+        return new Vector3(c.r, c.g, c.b);
+    }
+
+    private Texture2D RenderTextureTo2DTexture(RenderTexture rt)
+    {
+        RenderTexture currentActiveRT = RenderTexture.active;
+
+        RenderTexture.active = rt;
+
+        Texture2D tex = new Texture2D(rt.width, rt.height);
+        tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+
+        RenderTexture.active = currentActiveRT;
+        return tex;
     }
 
     void Calc_Spectrum()
