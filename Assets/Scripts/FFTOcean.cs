@@ -6,7 +6,7 @@ public class FFTOcean : MonoBehaviour
     [SerializeField] ComputeShader shaderGenerateSpectrum;
     [SerializeField] ComputeShader shaderSetNormal;
     [SerializeField] Shader renderingShader;
-    Material renderingShader_Material;
+    public Material renderingShader_Material;
     [SerializeField] FastFourierTransform fFT;
     [SerializeField] PhillipsSpectrum phillips;
     int kernel_GenerateSpectrumKernel, kernel_SetNormal;
@@ -102,7 +102,6 @@ public class FFTOcean : MonoBehaviour
     public float GetWaterHeight(Vector3 position)
     {
         Vector3 displacement = GetWaterDisplacement(position);
-        displacement = GetWaterDisplacement(position - displacement);
         displacement = GetWaterDisplacement(position - displacement);
 
         return 1 - GetWaterDisplacement(position - displacement).y;
