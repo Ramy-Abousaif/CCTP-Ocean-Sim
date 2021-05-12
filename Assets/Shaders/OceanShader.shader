@@ -77,6 +77,7 @@
 					float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
 					float3 reflectDir = -2.0 * dot(normal, viewDir) * normal + viewDir;
 					float v = dot(reflectDir, lightDir);
+					//sky colour = water colour + light specks and its colour
 					float3 sky = (v + 1.0) * _WaterColour * _LightColor0.rgb;
 					float fresnel = (0.05 + (1 - 0.05) * pow(1 - max(dot(normal, -viewDir),0), 5));
 					col.xyz = sky * fresnel + (1.0 - fresnel) * float3(0.01, 0.13, 0.15);
