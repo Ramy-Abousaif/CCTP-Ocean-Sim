@@ -3,7 +3,8 @@
 	Properties
 	{
 		_MainTex("-" , 2D) = "black" {}
-		_WaterColour("Water Colour", Color) = (1, 1, 1, 1)
+		_WaterColour("Water Colour", Color) = (0.01, 0.13, 0.15)
+		_HighlightColour("Highlight Colour", Color) = (0.11, 0.64, 0.79, 1)
 	}
 
 		SubShader
@@ -21,6 +22,7 @@
 
 				sampler2D _MainTex;
 				float4 _WaterColour;
+				float4 _HighlightColour;
 				StructuredBuffer<float2> d_ht;
 				StructuredBuffer<float2> d_displaceX;
 				StructuredBuffer<float2> d_displaceZ;
@@ -78,9 +80,9 @@
 					float3 reflectDir = -2.0 * dot(normal, viewDir) * normal + viewDir;
 					float v = dot(reflectDir, lightDir);
 					//sky colour = water colour + light specks and its colour
-					float3 sky = (v + 1.0) * _WaterColour * _LightColor0.rgb;
+					float3 sky = (v + 1.0) * _HighlightColour * _LightColor0.rgb;
 					float fresnel = (0.05 + (1 - 0.05) * pow(1 - max(dot(normal, -viewDir),0), 5));
-					col.xyz = sky * fresnel + (1.0 - fresnel) * float3(0.01, 0.13, 0.15);
+					col.xyz = sky * fresnel + (1.0 - fresnel) * _WaterColour;
 					col.xyz += pow(max(v, 0), 249) * _LightColor0;
 					col.w = 1;
 					return col;

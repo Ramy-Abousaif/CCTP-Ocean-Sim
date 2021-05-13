@@ -15,6 +15,8 @@ public class FFTOcean : MonoBehaviour
     RenderTexture normal_Tex;
     int cnt;
     [SerializeField] float lambda = -1.0f;
+    public Color waterColour = new Vector4(0.11f, 0.64f, 0.79f, 1f);
+    public Color highlightColour = new Vector4(0, 0.31f, 0.40f, 1f);
 
     private void Awake()
     {
@@ -39,8 +41,8 @@ public class FFTOcean : MonoBehaviour
         SetArgs();
     }
 
-    public RenderTexture tex;
-    public Texture2D tex2D;
+    private RenderTexture tex;
+    private Texture2D tex2D;
 
     RenderTexture CreateRenderTeture()
     {
@@ -96,6 +98,8 @@ public class FFTOcean : MonoBehaviour
         CalcFFT_displaceXZ();
         SetNormal();
         tex2D = RenderTextureTo2DTexture(tex);
+        renderingShader_Material.SetColor("_WaterColour", waterColour);
+        renderingShader_Material.SetColor("_HighlightColour", highlightColour);
         cnt++;
     }
 

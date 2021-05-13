@@ -484,11 +484,12 @@ MonoBehaviour:
   shaderGenerateSpectrum: {fileID: 7200000, guid: e3db4b2bde06e164db0f1674723b7553, type: 3}
   shaderSetNormal: {fileID: 7200000, guid: b4ff47205e4844f48b8d70b3f291150d, type: 3}
   renderingShader: {fileID: 4800000, guid: 9196c98f6e7d7cf46bff4c75b2f15980, type: 3}
+  renderingShader_Material: {fileID: 0}
   fFT: {fileID: 1843226857}
   phillips: {fileID: 1320980353}
   lambda: -1
-  tex: {fileID: 0}
-  tex2D: {fileID: 0}
+  waterColour: {r: 0.11, g: 0.64, b: 0.79, a: 1}
+  highlightColour: {r: 0, g: 0.3386411, b: 0.4339623, a: 1}
 --- !u!1 &1504917883
 GameObject:
   m_ObjectHideFlags: 0
@@ -867,7 +868,7 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 0.6156863, g: 0.83137256, b: 0.81960785, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
