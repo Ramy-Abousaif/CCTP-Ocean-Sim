@@ -81,7 +81,7 @@
 					float v = dot(reflectDir, lightDir);
 					//sky colour = water colour + light specks and its colour
 					float3 sky = (v + 1.0) * _HighlightColour * _LightColor0.rgb;
-					float fresnel = (0.05 + (1 - 0.05) * pow(1 - max(dot(normal, -viewDir),0), 5));
+					float fresnel = (0.05 + (1 - 0.05) * pow(1 - saturate(dot(normal, -viewDir)), 5));
 					col.xyz = sky * fresnel + (1.0 - fresnel) * _WaterColour;
 					col.xyz += pow(max(v, 0), 249) * _LightColor0;
 					col.w = 1;
