@@ -1,4 +1,4 @@
-﻿#pragma kernel SetNormal
+﻿#pragma kernel CreateNormal
 RWTexture2D<float4> tex;
 RWStructuredBuffer<float2> ht_dx;
 RWStructuredBuffer<float2> ht_dz;
@@ -10,7 +10,7 @@ float dz;
 
 float lambda;
 [numthreads(256, 1, 1)]
-void SetNormal(uint2 id : SV_DispatchThreadID)
+void CreateNormal(uint2 id : SV_DispatchThreadID)
 {
 	uint x0 = (id.x - 1 + N) % N;
 	uint x1 = (id.x + 1) % N;

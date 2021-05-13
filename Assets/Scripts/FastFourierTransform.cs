@@ -3,7 +3,6 @@
 public class FastFourierTransform : MonoBehaviour
 {
     [SerializeField] ComputeShader shader;
-    ComputeBuffer buffer_dbg;
     int kernel_FFT2Dfunc256inv, kernel_DFT2Dfunc256inv;
 
     void Awake()

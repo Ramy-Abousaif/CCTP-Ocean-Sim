@@ -478,10 +478,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1298868725496638056, guid: 83cae004c70c0ea4bbf42a1bb7fafe60, type: 3}
-      propertyPath: shaderInitialSpectrum
-      value: 
-      objectReference: {fileID: 7200000, guid: e3db4b2bde06e164db0f1674723b7553, type: 3}
     - target: {fileID: 6536130440019737187, guid: 83cae004c70c0ea4bbf42a1bb7fafe60, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

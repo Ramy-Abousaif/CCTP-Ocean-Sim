@@ -3,13 +3,13 @@ using UnityEngine.Experimental.Rendering;
 
 public class FFTOcean : MonoBehaviour
 {
-    [SerializeField] ComputeShader shaderGenerateSpectrum;
-    [SerializeField] ComputeShader shaderSetNormal;
+    [SerializeField] ComputeShader shaderInitialSpectrum;
+    [SerializeField] ComputeShader shaderCreateNormal;
     [SerializeField] Shader renderingShader;
-    public Material renderingShader_Material;
-    [SerializeField] FastFourierTransform fFT;
+    private Material renderingShader_Material;
+    [SerializeField] FastFourierTransform fft;
     [SerializeField] PhillipsSpectrum phillips;
-    int kernel_GenerateSpectrumKernel, kernel_SetNormal;
+    int kernel_InitialSpectrumKernel, kernel_CreateNormal;
     Vector2[] h_h0;
     public ComputeBuffer d_h0, d_ht, d_ht_dx, d_ht_dz, d_ht_dmy, d_displaceX, d_displaceZ;
     RenderTexture normal_Tex;
@@ -20,8 +20,8 @@ public class FFTOcean : MonoBehaviour
 
     private void Awake()
     {
-        kernel_GenerateSpectrumKernel = shaderGenerateSpectrum.FindKernel("GenerateSpectrumKernel");
-        kernel_SetNormal = shaderSetNormal.FindKernel("SetNormal");
+        kernel_InitialSpectrumKernel = shaderInitialSpectrum.FindKernel("InitialSpectrumKernel");
+        kernel_CreateNormal = shaderCreateNormal.FindKernel("CreateNormal");
         renderingShader_Material = new Material(renderingShader);
         cnt = 0;
     }
@@ -58,24 +58,24 @@ public class FFTOcean : MonoBehaviour
     void SetArgs()
     {
         // Set ComputeShader arguments
-        shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "h0", d_h0);
-        shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "ht", d_ht);
-        shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "ht_dx", d_ht_dx);
-        shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "ht_dz", d_ht_dz);
-        shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "displaceX", d_displaceX);
-        shaderGenerateSpectrum.SetBuffer(kernel_GenerateSpectrumKernel, "displaceZ", d_displaceZ);
-        shaderGenerateSpectrum.SetInt("N", (int)PhillipsSpectrum.meshSize);
-        shaderGenerateSpectrum.SetInt("seasizeLx", (int)PhillipsSpectrum.Lx);
-        shaderGenerateSpectrum.SetInt("seasizeLz", (int)PhillipsSpectrum.Lz);
-        shaderSetNormal.SetBuffer(kernel_SetNormal, "ht_dx", d_ht_dx);
-        shaderSetNormal.SetBuffer(kernel_SetNormal, "ht_dz", d_ht_dz);
-        shaderSetNormal.SetBuffer(kernel_GenerateSpectrumKernel, "displaceX", d_displaceX);
-        shaderSetNormal.SetBuffer(kernel_GenerateSpectrumKernel, "displaceZ", d_displaceZ);
-        shaderSetNormal.SetTexture(kernel_SetNormal, "tex", normal_Tex);
-        shaderSetNormal.SetFloat("dx", 1.0f * PhillipsSpectrum.Lx / PhillipsSpectrum.meshSize);
-        shaderSetNormal.SetFloat("dz", 1.0f * PhillipsSpectrum.Lz / PhillipsSpectrum.meshSize);
-        shaderSetNormal.SetFloat("lambda", lambda);
-        shaderSetNormal.SetInt("N", (int)PhillipsSpectrum.meshSize);
+        shaderInitialSpectrum.SetBuffer(kernel_InitialSpectrumKernel, "h0", d_h0);
+        shaderInitialSpectrum.SetBuffer(kernel_InitialSpectrumKernel, "ht", d_ht);
+        shaderInitialSpectrum.SetBuffer(kernel_InitialSpectrumKernel, "ht_dx", d_ht_dx);
+        shaderInitialSpectrum.SetBuffer(kernel_InitialSpectrumKernel, "ht_dz", d_ht_dz);
+        shaderInitialSpectrum.SetBuffer(kernel_InitialSpectrumKernel, "displaceX", d_displaceX);
+        shaderInitialSpectrum.SetBuffer(kernel_InitialSpectrumKernel, "displaceZ", d_displaceZ);
+        shaderInitialSpectrum.SetInt("N", (int)PhillipsSpectrum.meshSize);
+        shaderInitialSpectrum.SetInt("Lx", (int)PhillipsSpectrum.Lx);
+        shaderInitialSpectrum.SetInt("Lz", (int)PhillipsSpectrum.Lz);
+        shaderCreateNormal.SetBuffer(kernel_CreateNormal, "ht_dx", d_ht_dx);
+        shaderCreateNormal.SetBuffer(kernel_CreateNormal, "ht_dz", d_ht_dz);
+        shaderCreateNormal.SetBuffer(kernel_InitialSpectrumKernel, "displaceX", d_displaceX);
+        shaderCreateNormal.SetBuffer(kernel_InitialSpectrumKernel, "displaceZ", d_displaceZ);
+        shaderCreateNormal.SetTexture(kernel_CreateNormal, "tex", normal_Tex);
+        shaderCreateNormal.SetFloat("dx", 1.0f * PhillipsSpectrum.Lx / PhillipsSpectrum.meshSize);
+        shaderCreateNormal.SetFloat("dz", 1.0f * PhillipsSpectrum.Lz / PhillipsSpectrum.meshSize);
+        shaderCreateNormal.SetFloat("lambda", lambda);
+        shaderCreateNormal.SetInt("N", (int)PhillipsSpectrum.meshSize);
         // Set GPU buffer as material
         renderingShader_Material.SetBuffer("d_ht", d_ht);
         renderingShader_Material.SetTexture("_MainTex", normal_Tex);
@@ -92,11 +92,11 @@ public class FFTOcean : MonoBehaviour
 
     void Update()
     {
-        Calc_Spectrum();
+        CalculateSpectrum();
         CalcFFT_ht();
         CalcFFT_ht_dxz();
         CalcFFT_displaceXZ();
-        SetNormal();
+        CreateNormal();
         tex2D = RenderTextureTo2DTexture(tex);
         renderingShader_Material.SetColor("_WaterColour", waterColour);
         renderingShader_Material.SetColor("_HighlightColour", highlightColour);
@@ -130,31 +130,31 @@ public class FFTOcean : MonoBehaviour
         return tex;
     }
 
-    void Calc_Spectrum()
+    void CalculateSpectrum()
     {
-        shaderGenerateSpectrum.SetFloat("t", 0.04f * cnt + 100.0f);
-        shaderGenerateSpectrum.Dispatch(kernel_GenerateSpectrumKernel, 1, 256, 1);// Calculate d_ht from d_h0, partial derivative component
+        shaderInitialSpectrum.SetFloat("t", 0.04f * cnt + 100.0f);
+        shaderInitialSpectrum.Dispatch(kernel_InitialSpectrumKernel, 1, 256, 1);// Calculate d_ht from d_h0, partial derivative component
     }
 
     void CalcFFT_ht()
     {
-        fFT.FFT2D_256_Dispatch(d_ht, d_ht_dmy);// Calculate height data from d_ht
+        fft.FFT2D_256_Dispatch(d_ht, d_ht_dmy);// Calculate height data from d_ht
     }
 
     void CalcFFT_ht_dxz()
     {
-        fFT.FFT2D_256_Dispatch(d_ht_dx, d_ht_dmy);// Calculate the height data from d_ht_dx and put the result in d_ht_dx
-        fFT.FFT2D_256_Dispatch(d_ht_dz, d_ht_dmy);// Calculate the height data from d_ht_dz and put the result in d_ht_dz
+        fft.FFT2D_256_Dispatch(d_ht_dx, d_ht_dmy);// Calculate the height data from d_ht_dx and put the result in d_ht_dx
+        fft.FFT2D_256_Dispatch(d_ht_dz, d_ht_dmy);// Calculate the height data from d_ht_dz and put the result in d_ht_dz
     }
     void CalcFFT_displaceXZ()
     {
-        fFT.FFT2D_256_Dispatch(d_displaceX, d_ht_dmy);
-        fFT.FFT2D_256_Dispatch(d_displaceZ, d_ht_dmy);
+        fft.FFT2D_256_Dispatch(d_displaceX, d_ht_dmy);
+        fft.FFT2D_256_Dispatch(d_displaceZ, d_ht_dmy);
     }
 
-    void SetNormal()
+    void CreateNormal()
     {
-        shaderSetNormal.Dispatch(kernel_SetNormal, 1, 256, 1);// Extract the value from the partial differential buffer, calculate the normal vector and save it in the texture
+        shaderCreateNormal.Dispatch(kernel_CreateNormal, 1, 256, 1);// Extract the value from the partial differential buffer, calculate the normal vector and save it in the texture
     }
 
     void OnRenderObject()
@@ -164,7 +164,7 @@ public class FFTOcean : MonoBehaviour
         Graphics.DrawProceduralNow(MeshTopology.Quads, (int)(PhillipsSpectrum.meshSize * PhillipsSpectrum.meshSize) * 4);
     }
 
-    private void OnDestroy()
+    void ReleaseBuffers()
     {
         d_h0.Release();
         d_ht.Release();
@@ -173,6 +173,11 @@ public class FFTOcean : MonoBehaviour
         d_ht_dmy.Release();
         d_displaceX.Release();
         d_displaceZ.Release();
+    }
+
+    private void OnDestroy()
+    {
+        ReleaseBuffers();
     }
 
 }

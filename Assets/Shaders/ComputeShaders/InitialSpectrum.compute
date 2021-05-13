@@ -1,4 +1,4 @@
-﻿#pragma kernel GenerateSpectrumKernel
+﻿#pragma kernel InitialSpectrumKernel
 #define PI 3.14159265358979323846264338328
 
 RWStructuredBuffer<float2> h0;
@@ -8,8 +8,8 @@ RWStructuredBuffer<float2> ht_dz;
 RWStructuredBuffer<float2> displaceX;
 RWStructuredBuffer<float2> displaceZ;
 int N;
-int seasizeLx;
-int seasizeLz;
+int Lx;
+int Lz;
 float t;
 
 float2 complex_add(float2 a, float2 b)
@@ -36,7 +36,7 @@ float2 conjugate(float2 arg)
 }
 
 [numthreads(256, 1, 1)]
-void GenerateSpectrumKernel(uint2 id : SV_DispatchThreadID)
+void InitialSpectrumKernel(uint2 id : SV_DispatchThreadID)
 {
 	uint x = id.x;
 	uint y = id.y;
@@ -45,8 +45,8 @@ void GenerateSpectrumKernel(uint2 id : SV_DispatchThreadID)
 	uint out_index = y * N + x;
 	// calculate wave vector
 	float2 k;
-	k.x = (-(int)N / 2.0f + x) * (2.0f * PI / seasizeLx);
-	k.y = (-(int)N / 2.0f + y) * (2.0f * PI / seasizeLz);
+	k.x = (-(int)N / 2.0f + x) * (2.0f * PI / Lx);
+	k.y = (-(int)N / 2.0f + y) * (2.0f * PI / Lz);
 	// calculate dispersion w(k)
 	float k_len = sqrt(k.x * k.x + k.y * k.y);
 	float w = sqrt(9.81f * k_len);
