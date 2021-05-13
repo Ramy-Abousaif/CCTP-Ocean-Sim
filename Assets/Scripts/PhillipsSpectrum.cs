@@ -12,7 +12,7 @@ public class PhillipsSpectrum : MonoBehaviour
     //Gravitational constant
     public float gravity = 9.81f;
     //Wave scale factor / Constant
-    public float A = 0.00000121f;
+    private float A = 0.00000121f;
 
     //Generates Phillips spectrum
     //(Kx, Ky) - normalized wave vector

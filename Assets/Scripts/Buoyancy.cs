@@ -29,7 +29,8 @@ public class Buoyancy : MonoBehaviour
 
     private void FixedUpdate()
     {
-        float wH = ocean.GetWaterHeight(transform.position) * (ocean.transform.GetComponent<PhillipsSpectrum>().A * 10000000);
+        float wH = ocean.GetWaterHeight(transform.position) * 
+            ((ocean.transform.GetComponent<PhillipsSpectrum>().windSpeed * ocean.transform.GetComponent<PhillipsSpectrum>().windSpeed) / ocean.transform.GetComponent<PhillipsSpectrum>().gravity);
         if (DEBUG)
             Debug.Log(wH);
 

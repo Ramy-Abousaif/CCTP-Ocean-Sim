@@ -159,7 +159,7 @@ public class FFTOcean : MonoBehaviour
 
     void OnRenderObject()
     {
-        //Render multi-quad plane through GPU
+        //Render whatever is in the compute buffer in the form of a multi-quad plane
         renderingShader_Material.SetPass(0);
         Graphics.DrawProceduralNow(MeshTopology.Quads, (int)(PhillipsSpectrum.meshSize * PhillipsSpectrum.meshSize) * 4);
     }
